@@ -54,7 +54,7 @@ Or, in a dev container that isn't Nix-based, the published Feature:
 
 ```jsonc
 {
-  "features": { "ghcr.io/rayanjavan/claude-state/src/claude-state:1": {} },
+  "features": { "ghcr.io/rayanjavan/claude-state/claude-state:1": {} },
   "mounts": [{ "source": "nix-store", "target": "/nix", "type": "volume" }]
 }
 ```

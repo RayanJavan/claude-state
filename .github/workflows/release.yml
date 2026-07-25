@@ -1,0 +1,35 @@
+name: release
+
+# Publishes the thin Feature to GHCR so non-Nix consumers get one-line
+# adoption. The flake itself needs no release step — it's already consumed by
+# URL (github:RayanJavan/claude-state or a tagged ref of it) — this workflow
+# exists only for src/claude-state.
+on:
+  push:
+    tags: ["v*.*.*"]
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish-feature:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check devcontainer-feature.json version matches the tag
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          declared="$(jq -r .version src/claude-state/devcontainer-feature.json)"
+          if [ "$tag" != "$declared" ]; then
+            echo "::error::tag v$tag does not match devcontainer-feature.json version $declared"
+            exit 1
+          fi
+
+      - uses: devcontainers/action@v1
+        with:
+          publish-features: "true"
+          base-path-to-features: "./src"
+          registry: ghcr.io
+          registry-namespace: "${{ github.repository_owner }}/claude-state"

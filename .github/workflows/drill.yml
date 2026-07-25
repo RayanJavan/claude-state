@@ -1,0 +1,29 @@
+name: drill
+
+# The synthetic drill in `nix flake check` proves the tooling round-trips
+# correctly against a static fixture. It does not — and cannot — prove that
+# an actually-degrading external dependency (nixpkgs removing a package,
+# restic changing a flag) hasn't quietly broken the real path. Running the
+# same checks on a schedule against a fresh evaluation of the flake, with no
+# local cache to hide behind, is what catches that category of drift.
+on:
+  schedule:
+    - cron: "17 6 * * 1" # weekly, Monday 06:17 UTC — arbitrary offset to avoid the top-of-hour thundering herd
+  workflow_dispatch: {}
+
+jobs:
+  scheduled-drill:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: DeterminateSystems/nix-installer-action@main
+      # Deliberately no magic-nix-cache here: the point is a cold evaluation
+      # against current nixpkgs, not a fast one.
+
+      - run: nix flake check --print-build-logs
+
+      - name: Report failure
+        if: failure()
+        run: |
+          echo "::error::Scheduled drill failed — an external dependency likely drifted. See job logs for which check broke."

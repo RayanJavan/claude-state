@@ -25,8 +25,5 @@
     "NIX_INSTALLER_NO_CHANNEL_ADD": "1"
   },
   "postCreateCommand": "claude-state-daemon-ensure && claude-state converge",
-  "postStartCommand": "claude-state-daemon-ensure && claude-state verify",
-  "installsAfter": [
-    "ghcr.io/devcontainers/features/common-utils"
-  ]
+  "postStartCommand": "claude-state-daemon-ensure && claude-state verify"
 }

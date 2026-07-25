@@ -84,9 +84,9 @@ let
     export RESTIC_PASSWORD="check-harness-password"
   '';
 
-  check = name: script: pkgs.runCommand "check-${name}"
+  check = name: script: extraInputs: pkgs.runCommand "check-${name}"
     {
-      nativeBuildInputs = [ cli pkgs.restic pkgs.jq pkgs.diffutils ];
+      nativeBuildInputs = [ cli pkgs.restic pkgs.jq ] ++ extraInputs;
     }
     (harness + script + "\ntouch \"$out\"\n");
 
@@ -118,7 +118,7 @@ in
       cat "$TMPDIR/out" >&2
       exit 1
     fi
-  '';
+  '' [ ];
 
   # verify must never write. The fixture is hashed before and after; any
   # difference at all fails.
@@ -133,7 +133,7 @@ in
       echo "FAIL: verify modified the state directory" >&2
       exit 1
     fi
-  '';
+  '' [ ];
 
   # A full round trip against a static fixture, where byte-equality IS a
   # meaningful assertion. Also proves the excluded classes really are excluded.
@@ -167,7 +167,7 @@ in
 
     # The drill verb itself must pass against a real repository.
     claude-state drill
-  '';
+  '' [ pkgs.diffutils ];
 
   # restore must refuse to overwrite the directory it is protecting.
   restore-refuses-live-target = check "restore-refuses-live-target" ''
@@ -184,7 +184,7 @@ in
       cat "$TMPDIR/out" >&2
       exit 1
     fi
-  '';
+  '' [ ];
 
   # The committed docs are a build output. If they drift from the manifest,
   # this fails rather than letting the table quietly become fiction.

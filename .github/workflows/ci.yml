@@ -32,8 +32,11 @@ jobs:
     # above tests the local checkout directly and is the real PR gate; this
     # job confirms the Feature mechanism (Nix bootstrap with no systemd,
     # postCreate/postStart) against what actually got published.
+    # No `needs: flake-check` — the two jobs share no artifacts, and this one
+    # doesn't gate a merge (already past `main`), so there's no correctness or
+    # review-latency reason to serialize them. Only cost would argue for
+    # serializing, and it isn't worth the wall-clock on every push to main.
     if: github.ref == 'refs/heads/main'
-    needs: flake-check
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

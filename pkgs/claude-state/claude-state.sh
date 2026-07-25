@@ -41,11 +41,13 @@ state_dir() {
 mapfile -t CLASSIFIED_GLOBS < "$CLASSIFICATION_DIR/classified-globs.txt"
 mapfile -t EXCLUDED_GLOBS   < "$CLASSIFICATION_DIR/excluded-globs.txt"
 
-# A path is classified if it matches a glob exactly. Globs are deliberately
-# unquoted on the right-hand side of == so that pattern matching happens.
-matches_classified() {
+# A path is classified/excluded if it matches some glob in the given list
+# exactly. Globs are deliberately unquoted on the right-hand side of ==
+# so that pattern matching happens.
+matches_any() {
   local rel="$1" glob
-  for glob in "${CLASSIFIED_GLOBS[@]}"; do
+  shift
+  for glob in "$@"; do
     [ -n "$glob" ] || continue
     # shellcheck disable=SC2053
     if [[ "$rel" == $glob ]]; then
@@ -55,17 +57,8 @@ matches_classified() {
   return 1
 }
 
-matches_excluded() {
-  local rel="$1" glob
-  for glob in "${EXCLUDED_GLOBS[@]}"; do
-    [ -n "$glob" ] || continue
-    # shellcheck disable=SC2053
-    if [[ "$rel" == $glob ]]; then
-      return 0
-    fi
-  done
-  return 1
-}
+matches_classified() { matches_any "$1" "${CLASSIFIED_GLOBS[@]}"; }
+matches_excluded()   { matches_any "$1" "${EXCLUDED_GLOBS[@]}"; }
 
 # True when some glob classifies something *inside* this directory, meaning the
 # directory is partially classified and we must descend rather than report it.
@@ -98,6 +91,14 @@ scan_unclassified() {
     fi
     UNCLASSIFIED+=("$rel")
   done
+}
+
+# Single predicate for "is there enough to talk to a repository at all" —
+# require_repo (fails loudly) and converge (degrades to a warning) both judge
+# repo-readiness by this, so the two can never drift out of sync with each
+# other about what "configured" means.
+repo_configured() {
+  [ -n "${RESTIC_REPOSITORY:-}" ] && { [ -n "${RESTIC_PASSWORD:-}" ] || [ -n "${RESTIC_PASSWORD_FILE:-}" ]; }
 }
 
 require_repo() {
@@ -141,7 +142,7 @@ cmd_converge() {
     ok "created state directory: $dir"
   fi
 
-  if [ -z "${RESTIC_REPOSITORY:-}" ] || { [ -z "${RESTIC_PASSWORD:-}" ] && [ -z "${RESTIC_PASSWORD_FILE:-}" ]; }; then
+  if ! repo_configured; then
     warn "backup repository not configured (RESTIC_REPOSITORY / RESTIC_PASSWORD unset)"
     warn "state directory is ready, but nothing will be snapshotted until it is"
   elif repo_initialised; then
@@ -193,11 +194,13 @@ cmd_verify() {
     status=1
   else
     ok "repository reachable: $RESTIC_REPOSITORY"
-    count="$(restic snapshots --tag claude-state --json 2>/dev/null | jq 'length')"
+    read -r count latest < <(
+      restic snapshots --tag claude-state --json 2>/dev/null \
+        | jq -r '"\(length) \(.[-1].time // "-")"'
+    )
     if [ "$count" -eq 0 ]; then
       warn "no snapshots yet — run 'claude-state snapshot'"
     else
-      latest="$(restic snapshots --tag claude-state --json 2>/dev/null | jq -r '.[-1].time')"
       ok "$count snapshot(s), most recent $latest"
     fi
   fi

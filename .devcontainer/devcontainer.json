@@ -4,7 +4,6 @@
   "features": {
     "./src/claude-state": {
       "flakeRef": "path:..",
-      "resticRepository": "/workspaces/.claude-state-backup",
       "claudeConfigDir": "/workspaces/.claude-state-demo"
     }
   },

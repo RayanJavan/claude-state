@@ -16,15 +16,19 @@ let
   classNames = lib.attrNames classification;
   globsOf = name: lib.attrNames classification.${name}.paths;
 
+  # Computed once per class name; allGlobs and excludedGlobs both read from
+  # this instead of re-deriving attrNames per class for each of them.
+  globsByClass = lib.genAttrs classNames globsOf;
+
   backedUpClasses = lib.filter (n: classification.${n}.backup) classNames;
   excludedClasses = lib.filter (n: !classification.${n}.backup) classNames;
 
   # The only list that removes data from a snapshot.
-  excludedGlobs = lib.concatMap globsOf excludedClasses;
+  excludedGlobs = lib.concatMap (n: globsByClass.${n}) excludedClasses;
 
   # Every glob the coverage check knows about. A live path matching none of
   # these is unclassified, and is reported rather than ignored.
-  allGlobs = lib.concatMap globsOf classNames;
+  allGlobs = lib.concatMap (n: globsByClass.${n}) classNames;
 
   nl = lib.concatStringsSep "\n";
   toFile = xs: nl (xs ++ [ "" ]);

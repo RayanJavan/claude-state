@@ -10,11 +10,14 @@ source dev-container-features-test-lib
 # writeShellApplication wrapper's own runtime PATH, not exposed as a
 # standalone binary in the profile — claude-state is the only interface this
 # feature promises.
-check "verify passes with the repo configured" bash -lc \
-  'claude-state-daemon-ensure && claude-state verify'
-check "snapshot succeeds" bash -lc \
-  'claude-state-daemon-ensure && claude-state snapshot'
-check "drill passes against the real repository" bash -lc \
-  'claude-state-daemon-ensure && claude-state drill'
+#
+# claude-state-daemon-ensure runs once here rather than before each check:
+# it's idempotent and the daemon it starts persists for the container's
+# lifetime, so per-check invocations would be redundant.
+claude-state-daemon-ensure
+
+check "verify passes with the repo configured" bash -lc 'claude-state verify'
+check "snapshot succeeds" bash -lc 'claude-state snapshot'
+check "drill passes against the real repository" bash -lc 'claude-state drill'
 
 reportResults

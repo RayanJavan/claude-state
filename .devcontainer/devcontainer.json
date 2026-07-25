@@ -1,0 +1,15 @@
+{
+  "name": "claude-state (self-hosted)",
+  "image": "mcr.microsoft.com/devcontainers/base:bookworm",
+  "features": {
+    "./src/claude-state": {
+      "flakeRef": "path:..",
+      "resticRepository": "/workspaces/.claude-state-backup",
+      "claudeConfigDir": "/workspaces/.claude-state-demo"
+    }
+  },
+  "mounts": [
+    { "source": "claude-state-nix-store", "target": "/nix", "type": "volume" }
+  ],
+  "remoteUser": "vscode"
+}

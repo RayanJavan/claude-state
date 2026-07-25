@@ -1,0 +1,32 @@
+{
+  "id": "claude-state",
+  "version": "1.0.0",
+  "name": "claude-state",
+  "description": "Installs Nix and the claude-state CLI, and wires up reconstruct-on-create / verify-on-start. Holds no policy of its own — every rule lives in the classification manifest inside the flake this feature fetches.",
+  "documentationURL": "https://github.com/RayanJavan/claude-state",
+  "options": {
+    "flakeRef": {
+      "type": "string",
+      "default": "github:RayanJavan/claude-state",
+      "description": "Flake reference to fetch claude-state from."
+    },
+    "resticRepository": {
+      "type": "string",
+      "default": "/workspaces/.claude-state-backup",
+      "description": "Value exported as RESTIC_REPOSITORY. A path under /workspaces survives container rebuild but not environment deletion — see the project README for what that limitation means."
+    },
+    "claudeConfigDir": {
+      "type": "string",
+      "default": "/workspaces/.claude-data",
+      "description": "Value exported as CLAUDE_CONFIG_DIR — the directory claude-state manages."
+    }
+  },
+  "containerEnv": {
+    "NIX_INSTALLER_NO_CHANNEL_ADD": "1"
+  },
+  "postCreateCommand": "claude-state-daemon-ensure && claude-state converge",
+  "postStartCommand": "claude-state-daemon-ensure && claude-state verify",
+  "installsAfter": [
+    "ghcr.io/devcontainers/features/common-utils"
+  ]
+}

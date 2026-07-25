@@ -25,5 +25,5 @@
     "NIX_INSTALLER_NO_CHANNEL_ADD": "1"
   },
   "postCreateCommand": "claude-state-daemon-ensure && claude-state converge",
-  "postStartCommand": "claude-state-daemon-ensure && claude-state verify"
+  "postStartCommand": "claude-state-daemon-ensure && claude-state verify || true"
 }

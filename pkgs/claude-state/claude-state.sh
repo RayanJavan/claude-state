@@ -127,10 +127,13 @@ render_exclude_file() {
 cmd_converge() {
   local dir
   dir="$(state_dir)"
-  require_repo
 
   section "[claude-state] converge — reconstructs from declarations only"
 
+  # The state directory is the core promise and must always succeed.
+  # Backup-repo setup is a separate concern: an environment that has never had
+  # RESTIC_PASSWORD provisioned yet should still be usable, so this degrades to
+  # a warning rather than blocking container creation entirely.
   if [ -d "$dir" ]; then
     ok "state directory present: $dir"
   else
@@ -138,7 +141,10 @@ cmd_converge() {
     ok "created state directory: $dir"
   fi
 
-  if repo_initialised; then
+  if [ -z "${RESTIC_REPOSITORY:-}" ] || { [ -z "${RESTIC_PASSWORD:-}" ] && [ -z "${RESTIC_PASSWORD_FILE:-}" ]; }; then
+    warn "backup repository not configured (RESTIC_REPOSITORY / RESTIC_PASSWORD unset)"
+    warn "state directory is ready, but nothing will be snapshotted until it is"
+  elif repo_initialised; then
     ok "backup repository already initialised"
   else
     restic init >/dev/null

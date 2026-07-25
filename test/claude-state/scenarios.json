@@ -2,7 +2,20 @@
   "default": {
     "image": "mcr.microsoft.com/devcontainers/base:bookworm",
     "features": {
-      "claude-state": {}
+      "claude-state": {
+        "resticRepository": "/tmp/claude-state-test-repo"
+      }
+    },
+    "containerEnv": {
+      "RESTIC_PASSWORD": "feature-test-password"
+    }
+  },
+  "no_secret_yet": {
+    "image": "mcr.microsoft.com/devcontainers/base:bookworm",
+    "features": {
+      "claude-state": {
+        "resticRepository": "/tmp/claude-state-test-repo-2"
+      }
     }
   }
 }

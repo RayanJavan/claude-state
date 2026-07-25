@@ -3,7 +3,8 @@
     "image": "mcr.microsoft.com/devcontainers/base:bookworm",
     "features": {
       "claude-state": {
-        "resticRepository": "/tmp/claude-state-test-repo"
+        "resticRepository": "/tmp/claude-state-test-repo",
+        "claudeConfigDir": "/tmp/claude-state-config"
       }
     },
     "containerEnv": {
@@ -14,7 +15,8 @@
     "image": "mcr.microsoft.com/devcontainers/base:bookworm",
     "features": {
       "claude-state": {
-        "resticRepository": "/tmp/claude-state-test-repo-2"
+        "resticRepository": "/tmp/claude-state-test-repo-2",
+        "claudeConfigDir": "/tmp/claude-state-config-2"
       }
     }
   }

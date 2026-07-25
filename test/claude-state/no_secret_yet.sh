@@ -15,9 +15,12 @@ claude-state-daemon-ensure
 
 check "claude-state is usable" bash -lc 'command -v claude-state'
 check "converge succeeds with no repo configured" bash -lc 'claude-state converge'
-check "verify reports the missing repo without crashing" bash -lc \
-  'claude-state verify; test "$?" -ne 0 || true'
+check "verify reports the missing repo without crashing" bash -lc '! claude-state verify'
+
+# resticRepository IS set in this scenario (the feature option default) —
+# only RESTIC_PASSWORD is missing, so require_repo's actual message names
+# RESTIC_PASSWORD, not RESTIC_REPOSITORY.
 check "snapshot refuses clearly rather than crashing" bash -lc \
-  'output=$(claude-state snapshot 2>&1); code=$?; echo "$output" | grep -q RESTIC_REPOSITORY && [ "$code" -ne 0 ]'
+  'output=$(claude-state snapshot 2>&1); code=$?; echo "$output" | grep -q RESTIC_PASSWORD && [ "$code" -ne 0 ]'
 
 reportResults
